@@ -17,7 +17,14 @@ tasks:
     silent: true
     interactive: false
     vars:
-      API_ENDPOINT: '{{.GITEA_BASEURL}}/api/vi/repos/{{.GITEA_USER}}/{{.GITEA_REPO}}/mirror-sync'
-      BODY_MAP: '{{dict "owner" .GITEA_USER "repo" .GITEA_REPO}}'
+      API_ENDPOINT: '{{.GITEA_BASEURL}}/api/v1/repos/{{.GITEA_USER}}/{{.GITEA_REPO}}/mirror-sync'
+      V: '{{default "0" .V}}'
+      # {{$body_map := dict "owner" .GITEA_USER "repo" .GITEA_REPO}}
+      # -d {{$body_map | toJson | squote}} \
     cmds:
-      - 'echo curl -X POST -H "Content-Type: application/json" -H "Authorization: token {{.GITEA_AUTH_TOKEN}}" -d {{.BODY_MAP | toJson}} {{.API_ENDPOINT}}'
+      - |
+        curl {{eq .V "1" | ternary "-v" "-s"}} -X POST \
+          -H "Content-Type: application/json" \
+          -H "Accept: application/json" \
+          -H "Authorization: token {{.GITEA_AUTH_TOKEN}}" \
+          "{{.API_ENDPOINT}}" {{if eq .V "0"}}| jq{{end}}
